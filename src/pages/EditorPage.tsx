@@ -30,8 +30,7 @@ import { VersionHistoryPanel } from '@/features/VersionHistoryPanel';
 import { SegmentToggle } from '@/components/primitives';
 import { useToast } from '@/components/Toast';
 import { quotesRepo, profilesRepo } from '@/data/repositories';
-import type { QuoteStato, QuoteVersionRow } from '@/data/supabase/types';
-import type { QuoteStatus } from '@/domain/types';
+import type { QuoteVersionRow } from '@/data/supabase/types';
 
 type View = 'compilazione' | 'anteprima';
 const LOCK_REFRESH_MS = 5 * 60 * 1000;
@@ -53,12 +52,9 @@ export function EditorPage() {
   const quote = useQuoteStore((s) => s.quote);
   const record = useQuoteStore((s) => s.record);
   const dirty = useQuoteStore((s) => s.dirty);
-  const stato = useQuoteStore((s) => s.quote.stato);
-  const updateQuote = useQuoteStore((s) => s.updateQuote);
   const setQuote = useQuoteStore((s) => s.setQuote);
   const resetQuote = useQuoteStore((s) => s.resetQuote);
   const loadQuote = useQuoteStore((s) => s.loadQuote);
-  const patchRecord = useQuoteStore((s) => s.patchRecord);
   const totals = useTotals();
 
   const autosave = useAutosave({
@@ -169,15 +165,6 @@ export function EditorPage() {
     }
   };
 
-  const handleToggleStato = async () => {
-    const next: QuoteStatus = stato === 'bozza' ? 'definitivo' : 'bozza';
-    updateQuote((q) => (q.stato = next));
-    if (record) {
-      await quotesRepo.setStato(record.id, next as QuoteStato);
-      patchRecord({ stato: next });
-    }
-  };
-
   const handleSnapshot = async (label: string) => {
     if (!record || !profile) return;
     try {
@@ -239,16 +226,6 @@ export function EditorPage() {
               ]}
               onChange={setView}
             />
-            <button
-              onClick={handleToggleStato}
-              className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
-                stato === 'definitivo'
-                  ? 'border-accent bg-accent/8 text-accent'
-                  : 'border-line text-ink-muted hover:border-stone-300'
-              }`}
-            >
-              {stato === 'definitivo' ? '● Definitivo' : '○ Bozza'}
-            </button>
             <SaveIndicator status={autosave.status} dirty={dirty} savedAt={autosave.savedAt} />
             <button
               onClick={() => setHistoryOpen(true)}

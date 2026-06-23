@@ -143,15 +143,13 @@ export async function create(input: {
   const sb = requireSupabase();
   const idx = indexFields(input.data, input.totali);
 
-  // Lo stato lifecycle iniziale rispecchia quello del corpo (bozza/definitivo).
-  const initialStato: QuoteStato =
-    input.data.stato === 'definitivo' ? 'definitivo' : 'bozza';
-
+  // Un preventivo salvato è per definizione "definitivo": non esiste più lo
+  // stato bozza come funzione manuale.
   const { data: created, error } = await sb
     .from('quotes')
     .insert({
       ...idx,
-      stato: initialStato,
+      stato: 'definitivo',
       autore_id: input.autoreId,
     })
     .select('*')

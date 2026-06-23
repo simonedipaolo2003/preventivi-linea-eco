@@ -35,7 +35,7 @@ function defaultLabor(): LaborTaskRow[] {
 export function createEmptyQuote(): Quote {
   return {
     id: uid('quote'),
-    stato: 'bozza',
+    stato: 'definitivo',
     header: {
       data: new Date().toISOString().slice(0, 10),
       intestazioneCliente: '',
