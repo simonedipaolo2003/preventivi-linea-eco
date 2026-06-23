@@ -74,7 +74,9 @@ export function EditorPage() {
         loadQuote(version.data, {
           id: row.id,
           codice: row.codice,
-          versionId: row.current_version_id,
+          // La versione caricata è la fonte di verità del corpo: usiamo il suo id
+          // come target dell'autosave (current_version_id può essere stato riparato).
+          versionId: version.id,
           updatedAt: row.updated_at,
           stato: row.stato,
         });

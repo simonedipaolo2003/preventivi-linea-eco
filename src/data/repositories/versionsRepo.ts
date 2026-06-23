@@ -20,6 +20,21 @@ export async function listByQuote(quoteId: string): Promise<QuoteVersionRow[]> {
   return (data ?? []) as QuoteVersionRow[];
 }
 
+/** Versione più recente di un preventivo (null se non ne esiste nessuna). */
+export async function latestByQuote(quoteId: string): Promise<QuoteVersionRow | null> {
+  const sb = requireSupabase();
+  const { data, error } = await sb
+    .from('quote_versions')
+    .select('*')
+    .eq('quote_id', quoteId)
+    .order('version_no', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  return (data as QuoteVersionRow | null) ?? null;
+}
+
 /** Singola versione per id. */
 export async function get(id: string): Promise<QuoteVersionRow> {
   const sb = requireSupabase();

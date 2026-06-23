@@ -94,11 +94,29 @@ export async function get(id: string): Promise<QuoteRow> {
 export async function getWithCurrentVersion(
   id: string,
 ): Promise<{ quote: QuoteRow; version: QuoteVersionRow | null }> {
-  const quote = await get(id);
+  let quote = await get(id);
   let version: QuoteVersionRow | null = null;
+
   if (quote.current_version_id) {
     version = await versionsRepo.get(quote.current_version_id);
   }
+
+  // Fallback: se il puntatore manca o è rotto (es. creazione interrotta a metà
+  // tra l'insert del preventivo e il link della versione), ripiega sull'ultima
+  // versione esistente e ripara il puntatore, così l'editor non mostra vuoto.
+  if (!version) {
+    version = await versionsRepo.latestByQuote(id);
+    if (version && quote.current_version_id !== version.id) {
+      const { data: repaired } = await requireSupabase()
+        .from('quotes')
+        .update({ current_version_id: version.id })
+        .eq('id', id)
+        .select('*')
+        .single();
+      if (repaired) quote = repaired as QuoteRow;
+    }
+  }
+
   return { quote, version };
 }
 
