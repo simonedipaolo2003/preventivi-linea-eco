@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-chalk text-ink font-sans antialiased;
+    font-feature-settings: 'cv05', 'ss01';
+  }
+  /* Refined, calm focus states */
+  :focus-visible {
+    outline: 2px solid theme('colors.accent.DEFAULT');
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  /* Tabular figures for all monetary/numeric values */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+}
+
+@layer components {
+  .label-eyebrow {
+    @apply text-2xs font-medium uppercase tracking-label text-ink-faint;
+  }
+  .field-label {
+    @apply block text-xs font-medium text-ink-muted mb-1.5;
+  }
+  .field-input {
+    @apply w-full bg-transparent border-b border-line py-2 text-[15px] text-ink
+      placeholder:text-ink-faint transition-colors duration-200 ease-editorial
+      focus:border-accent focus:outline-none;
+  }
+  .field-input-boxed {
+    @apply w-full bg-paper border border-line rounded-lg px-3 py-2.5 text-[15px] text-ink
+      placeholder:text-ink-faint transition-all duration-200 ease-editorial
+      focus:border-accent focus:ring-0 focus:outline-none hover:border-stone-300;
+  }
+  .field-select {
+    @apply field-input-boxed appearance-none bg-no-repeat pr-9 cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236E6A62' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+  }
+}
+
+/* Hide number input spinners for a cleaner look */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* Print / PDF styles */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 16mm 15mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-page {
+    box-shadow: none !important;
+    border: none !important;
+    background: #fff !important;
+  }
+  .print-break {
+    page-break-before: always;
+  }
+  /* Evita tagli brutti: blocchi, righe e sottovoci restano interi sulla pagina */
+  .break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* Nitidezza testo: niente ombre o sfondi pesanti in stampa */
+  h1,
+  h2 {
+    break-after: avoid;
+  }
+  /* Colori di sfondo dei box totali resi fedelmente */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

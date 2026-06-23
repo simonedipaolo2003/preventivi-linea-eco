@@ -1,0 +1,19 @@
+{
+  "name": "Preventivi — Linea Eco",
+  "short_name": "Preventivi",
+  "description": "Gestionale preventivi rivestimenti per focolari",
+  "lang": "it",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAF9F7",
+  "theme_color": "#1B1A17",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
