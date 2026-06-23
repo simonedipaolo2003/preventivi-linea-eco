@@ -8,8 +8,12 @@
 // compromesso accettato di proposito per la massima semplicità d'accesso.
 // ============================================================================
 
-/** Dominio fittizio per le email sintetiche (non deve ricevere posta). */
-const EMAIL_DOMAIN = 'preventivi-eco.local';
+/**
+ * Dominio per le email sintetiche. Deve avere un TLD valido (Supabase rifiuta
+ * `.local` come indirizzo non valido). Non riceve né invia posta reale: con la
+ * conferma email disattivata su Supabase, nessun messaggio viene mai inviato.
+ */
+const EMAIL_DOMAIN = 'preventivi-eco.com';
 
 /** Password condivisa fissa usata dietro le quinte per tutti gli accessi. */
 export const SHARED_PASSWORD = 'linea-eco-2026!';
