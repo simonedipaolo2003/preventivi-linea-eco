@@ -265,7 +265,7 @@ export async function duplicate(id: string, autoreId: string): Promise<QuoteRow>
   return create({ data: version.data, totali: version.totali, autoreId });
 }
 
-/** Cancellazione definitiva (consentita solo agli admin via RLS). */
+/** Cancellazione definitiva (consentita a ogni utente autenticato via RLS). */
 export async function remove(id: string): Promise<void> {
   const sb = requireSupabase();
   const { error } = await sb.from('quotes').delete().eq('id', id);

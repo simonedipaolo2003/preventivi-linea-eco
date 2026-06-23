@@ -1,7 +1,7 @@
 // ============================================================================
 // ArchivioPage — elenco condiviso dei preventivi.
 // Ricerca (cliente/riferimento/codice), filtro stato, ordinamento; azioni
-// apri / duplica / archivia / elimina (eliminazione solo admin).
+// apri / duplica / archivia / elimina (tutte disponibili a ogni utente).
 // ============================================================================
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +31,7 @@ const SORTS: { value: SortKey; label: string }[] = [
 
 export function ArchivioPage() {
   const navigate = useNavigate();
-  const { profile, isAdmin } = useAuth();
+  const { profile } = useAuth();
   const toast = useToast();
 
   const [search, setSearch] = useState('');
@@ -91,7 +91,7 @@ export function ArchivioPage() {
       toast.success(`${codice} eliminato.`);
       reload();
     } catch {
-      toast.error('Eliminazione non riuscita (permessi insufficienti?).');
+      toast.error('Eliminazione non riuscita. Riprova.');
     }
   };
 
@@ -214,13 +214,11 @@ export function ArchivioPage() {
                         {q.stato !== 'archiviato' && (
                           <RowAction label="Archivia" onClick={() => handleArchive(q.id)} />
                         )}
-                        {isAdmin && (
-                          <RowAction
-                            label="Elimina"
-                            danger
-                            onClick={() => handleDelete(q.id, q.codice)}
-                          />
-                        )}
+                        <RowAction
+                          label="Elimina"
+                          danger
+                          onClick={() => handleDelete(q.id, q.codice)}
+                        />
                       </div>
                     </td>
                   </tr>
