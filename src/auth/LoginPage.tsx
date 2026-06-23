@@ -1,25 +1,20 @@
 // ============================================================================
-// LoginPage — accesso al gestionale preventivi.
-// Login con email/password; opzione di registrazione (il trigger DB crea il
-// profilo 'operatore'). Già autenticato → redirect alla home.
+// LoginPage — accesso al gestionale preventivi col solo username.
+// Nessuna password: email/password sono derivate dietro le quinte (vedi
+// identity.ts). Al primo accesso l'account viene creato in automatico.
+// Già autenticato → redirect alla home.
 // ============================================================================
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 
-type Mode = 'login' | 'signup';
-
 export function LoginPage() {
-  const { session, loading, configured, signIn, signUp } = useAuth();
+  const { session, loading, configured, signIn } = useAuth();
   const location = useLocation() as { state?: { from?: string } };
 
-  const [mode, setMode] = useState<Mode>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   if (session && !loading) {
@@ -29,16 +24,9 @@ export function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setInfo(null);
     setBusy(true);
     try {
-      if (mode === 'login') {
-        await signIn(email.trim(), password);
-      } else {
-        await signUp(email.trim(), password, displayName.trim());
-        setInfo('Registrazione completata. Se richiesto, conferma la mail e poi accedi.');
-        setMode('login');
-      }
+      await signIn(username);
     } catch (err) {
       setError(messageFor(err));
     } finally {
@@ -59,59 +47,28 @@ export function LoginPage() {
             <span className="font-serif text-2xl text-ink">Preventivi</span>
             <span className="text-2xs uppercase tracking-label text-ink-faint">Linea Eco</span>
           </div>
-          <p className="mt-2 text-sm text-ink-muted">
-            {mode === 'login' ? 'Accedi al gestionale' : 'Crea un nuovo accesso'}
-          </p>
+          <p className="mt-2 text-sm text-ink-muted">Accedi al gestionale</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-4 rounded-xl2 border border-line bg-paper p-7 shadow-soft"
         >
-          {mode === 'signup' && (
-            <div>
-              <label className="field-label">Nome visualizzato</label>
-              <input
-                className="field-input-boxed"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Mario Rossi"
-                autoComplete="name"
-              />
-            </div>
-          )}
-
           <div>
-            <label className="field-label">Email</label>
+            <label className="field-label">Nome</label>
             <input
-              type="email"
               required
+              autoFocus
               className="field-input-boxed"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="nome@azienda.it"
-              autoComplete="email"
-            />
-          </div>
-
-          <div>
-            <label className="field-label">Password</label>
-            <input
-              type="password"
-              required
-              className="field-input-boxed"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Mario Rossi"
+              autoComplete="username"
             />
           </div>
 
           {error && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>
-          )}
-          {info && (
-            <p className="rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700">{info}</p>
           )}
 
           <button
@@ -122,7 +79,7 @@ export function LoginPage() {
             {busy && (
               <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-paper/40 border-t-paper" />
             )}
-            {mode === 'login' ? 'Accedi' : 'Registrati'}
+            Accedi
           </button>
 
           {!configured && (
@@ -131,34 +88,6 @@ export function LoginPage() {
             </p>
           )}
         </form>
-
-        <div className="mt-5 text-center text-xs text-ink-muted">
-          {mode === 'login' ? (
-            <button
-              type="button"
-              onClick={() => {
-                setMode('signup');
-                setError(null);
-                setInfo(null);
-              }}
-              className="transition-colors hover:text-accent"
-            >
-              Non hai un accesso? Registrati
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setMode('login');
-                setError(null);
-                setInfo(null);
-              }}
-              className="transition-colors hover:text-accent"
-            >
-              Hai già un accesso? Accedi
-            </button>
-          )}
-        </div>
       </motion.div>
     </div>
   );
@@ -166,9 +95,9 @@ export function LoginPage() {
 
 function messageFor(err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err);
-  if (/invalid login credentials/i.test(raw)) return 'Email o password non corretti.';
-  if (/email not confirmed/i.test(raw)) return 'Email non ancora confermata.';
-  if (/already registered/i.test(raw)) return 'Questa email è già registrata.';
-  if (/password.*6/i.test(raw)) return 'La password deve avere almeno 6 caratteri.';
+  if (/email not confirmed/i.test(raw)) {
+    return 'Conferma email attiva su Supabase: disattivala per l’accesso solo-username.';
+  }
+  if (/invalid login credentials/i.test(raw)) return 'Accesso non riuscito. Riprova.';
   return raw;
 }
