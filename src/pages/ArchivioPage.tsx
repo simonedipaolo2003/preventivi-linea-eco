@@ -210,6 +210,7 @@ export function ArchivioPage() {
                     </td>
                     <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover/row:opacity-100">
+                        <RowAction label="Modifica" onClick={() => navigate(`/preventivo/${q.id}`)} />
                         <RowAction label="Duplica" onClick={() => handleDuplicate(q.id)} />
                         {q.stato !== 'archiviato' && (
                           <RowAction label="Archivia" onClick={() => handleArchive(q.id)} />
