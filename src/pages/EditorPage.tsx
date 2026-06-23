@@ -46,6 +46,7 @@ export function EditorPage() {
   const [paramsOpen, setParamsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [loading, setLoading] = useState(Boolean(id));
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
   const [lockedBy, setLockedBy] = useState<string | null>(null);
 
@@ -70,17 +71,21 @@ export function EditorPage() {
   const loadFromDb = useCallback(
     async (quoteId: string) => {
       const { quote: row, version } = await quotesRepo.getWithCurrentVersion(quoteId);
-      if (version) {
-        loadQuote(version.data, {
-          id: row.id,
-          codice: row.codice,
-          // La versione caricata è la fonte di verità del corpo: usiamo il suo id
-          // come target dell'autosave (current_version_id può essere stato riparato).
-          versionId: version.id,
-          updatedAt: row.updated_at,
-          stato: row.stato,
-        });
+      if (!version) {
+        // Il preventivo esiste ma non ha alcuna versione (corpo) recuperabile.
+        const err = new Error('NO_VERSION') as Error & { code?: string };
+        err.code = 'NO_VERSION';
+        throw err;
       }
+      loadQuote(version.data, {
+        id: row.id,
+        codice: row.codice,
+        // La versione caricata è la fonte di verità del corpo: usiamo il suo id
+        // come target dell'autosave (current_version_id può essere stato riparato).
+        versionId: version.id,
+        updatedAt: row.updated_at,
+        stato: row.stato,
+      });
       return row;
     },
     [loadQuote],
@@ -90,12 +95,25 @@ export function EditorPage() {
     let cancelled = false;
     if (!id) {
       resetQuote();
+      setLoadError(null);
       setLoading(false);
       return;
     }
     setLoading(true);
+    setLoadError(null);
     loadFromDb(id)
-      .catch(() => undefined)
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        // Errore visibile (non più ingoiato): aiuta a distinguere "nessuna
+        // versione" da un errore di rete/permessi.
+        // eslint-disable-next-line no-console
+        console.error('Caricamento preventivo fallito:', err);
+        setLoadError(
+          (err as { code?: string }).code === 'NO_VERSION'
+            ? 'Questo preventivo non ha un contenuto salvato da mostrare.'
+            : 'Errore nel caricamento del preventivo.',
+        );
+      })
       .finally(() => !cancelled && setLoading(false));
     return () => {
       cancelled = true;
@@ -187,6 +205,23 @@ export function EditorPage() {
     return (
       <div className="flex min-h-screen items-center justify-center text-ink-faint">
         <span className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-accent" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-6">
+        <div className="max-w-md rounded-xl2 border border-line bg-paper p-8 text-center shadow-soft">
+          <h1 className="font-serif text-xl text-ink">Impossibile aprire il preventivo</h1>
+          <p className="mt-3 text-sm text-ink-muted">{loadError}</p>
+          <button
+            onClick={() => navigate('/archivio')}
+            className="mt-6 rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+          >
+            Torna all’archivio
+          </button>
+        </div>
       </div>
     );
   }
