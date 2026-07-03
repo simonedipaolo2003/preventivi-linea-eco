@@ -49,10 +49,10 @@ export function useAutosave({ autoreId, onCreated, paused = false, delay = 1200 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quote, dirty, paused, autoreId, delay]);
 
-  async function run() {
-    if (running.current) return;
+  async function run(): Promise<AutosaveStatus> {
+    if (running.current) return 'saving';
     const { quote: q, params: p, record: r, autoreId: uid } = latest.current;
-    if (!uid) return;
+    if (!uid) return 'idle';
 
     const totali = calcQuote(q, p);
     running.current = true;
@@ -62,7 +62,7 @@ export function useAutosave({ autoreId, onCreated, paused = false, delay = 1200 
         // Niente record vuoti: serve almeno l'intestazione cliente.
         if (!q.header.intestazioneCliente.trim()) {
           setStatus('idle');
-          return;
+          return 'idle';
         }
         const created = await quotesRepo.create({ data: q, totali, autoreId: uid });
         markSaved({
@@ -91,15 +91,19 @@ export function useAutosave({ autoreId, onCreated, paused = false, delay = 1200 
       }
       setStatus('saved');
       setSavedAt(new Date());
+      return 'saved';
     } catch (err) {
-      setStatus((err as { code?: string }).code === 'CONFLICT' ? 'conflict' : 'error');
+      const result: AutosaveStatus =
+        (err as { code?: string }).code === 'CONFLICT' ? 'conflict' : 'error';
+      setStatus(result);
+      return result;
     } finally {
       running.current = false;
     }
   }
 
-  /** Forza un salvataggio immediato (es. prima di uscire). */
-  function flush() {
+  /** Forza un salvataggio immediato (es. prima di uscire, o dal pulsante Salva). */
+  function flush(): Promise<AutosaveStatus> {
     if (timer.current) clearTimeout(timer.current);
     return run();
   }

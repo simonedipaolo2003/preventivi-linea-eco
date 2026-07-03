@@ -154,6 +154,18 @@ export function EditorPage() {
     setConflict(false);
   };
 
+  const handleManualSave = async () => {
+    const result = await autosave.flush();
+    if (result === 'saved') {
+      toast.success('Preventivo salvato.');
+    } else if (result === 'idle') {
+      toast.error('Inserisci il nome del cliente prima di salvare.');
+    } else if (result === 'error') {
+      toast.error('Salvataggio non riuscito. Riprova.');
+    }
+    // 'conflict' → il banner di conflitto scatta già dall'effect che osserva autosave.status.
+  };
+
   const handleTakeOver = async () => {
     if (!id || !profile) return;
     try {
@@ -227,6 +239,16 @@ export function EditorPage() {
               onChange={setView}
             />
             <SaveIndicator status={autosave.status} dirty={dirty} savedAt={autosave.savedAt} />
+            <button
+              onClick={handleManualSave}
+              disabled={autosave.status === 'saving'}
+              className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-xs font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              {autosave.status === 'saving' && (
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-paper/40 border-t-paper" />
+              )}
+              Salva
+            </button>
             <button
               onClick={() => setHistoryOpen(true)}
               aria-label="Cronologia versioni"

@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
 import { SectionShell, AddRowButton, RemoveRowButton, SectionTotal, EmptyHint } from '@/components/primitives';
-import { NumberField, SelectField, TextField, DerivedValue } from '@/components/fields';
+import { NumberField, TextField, DerivedValue } from '@/components/fields';
+import { MaterialPicker } from '@/components/MaterialPicker';
 import { useQuoteStore } from '@/app/store';
 import { useTotals } from '@/app/useTotals';
-import { MATERIALS, MATERIAL_FAMILIES, getMaterial, prezzoPerFascia } from '@/domain/catalog';
+import { getMaterial, prezzoPerFascia } from '@/domain/catalog';
 import { calcMaterialRow } from '@/domain/pricing/engine';
 import { emptyMaterialRow } from '@/domain/quoteFactory';
 import { formatEur } from '@/lib/money';
@@ -14,18 +14,6 @@ export function MaterialiSection() {
   const params = useQuoteStore((s) => s.params);
   const updateQuote = useQuoteStore((s) => s.updateQuote);
   const totals = useTotals();
-
-  const materialGroups = useMemo(
-    () =>
-      MATERIAL_FAMILIES.map((fam) => ({
-        label: fam,
-        options: MATERIALS.filter((m) => m.famiglia === fam).map((m) => ({
-          value: m.id,
-          label: m.descrizione,
-        })),
-      })),
-    [],
-  );
 
   const patch = (id: string, fn: (row: MaterialRow) => void) =>
     updateQuote((q) => {
@@ -70,12 +58,9 @@ export function MaterialiSection() {
               key={row.id}
               className="group/row grid grid-cols-1 items-end gap-3 py-3 lg:grid-cols-[1fr_92px_92px_92px_104px_28px]"
             >
-              <SelectField
+              <MaterialPicker
                 value={row.materialId ?? ''}
                 onChange={(v) => patch(row.id, (r) => (r.materialId = v))}
-                options={[]}
-                groups={materialGroups}
-                placeholder="Seleziona materiale…"
               />
               <NumberField value={row.mq} onChange={(v) => patch(row.id, (r) => (r.mq = v))} />
               <DerivedValue>{mat ? formatEur(prezzoPerFascia(mat.fascia)) : '—'}</DerivedValue>
