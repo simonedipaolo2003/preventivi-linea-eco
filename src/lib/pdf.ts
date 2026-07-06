@@ -1,13 +1,14 @@
 // ============================================================================
 // Generazione PDF lato client.
 // Cattura l'elemento del documento (l'anteprima già impaginata) con html2canvas
-// e lo impagina su fogli A4 con jsPDF, spezzando su più pagine se necessario.
+// e lo mette su UNA SOLA pagina con jsPDF: la pagina ha larghezza A4 e altezza
+// pari al contenuto, così l'intero preventivo resta su un unico foglio anche
+// con molti materiali/sezioni (nessuna spezzatura su più pagine).
 // Restituisce un Blob (per upload nello storage) e, opzionalmente, scarica.
 // ============================================================================
 // jspdf/html2canvas sono pesanti: caricati on-demand (dynamic import) così
 // restano fuori dal bundle iniziale e si scaricano solo al primo export.
 const A4_WIDTH_PT = 595.28; // 210mm @ 72dpi
-const A4_HEIGHT_PT = 841.89; // 297mm @ 72dpi
 
 /** Slug per nomi file: "Rossi Mario" → "rossi-mario". */
 export function slugify(s: string): string {
@@ -27,7 +28,9 @@ export function pdfFilename(cliente: string, data: string, suffix?: string): str
 }
 
 /**
- * Renderizza un elemento DOM in un PDF A4 multipagina.
+ * Renderizza un elemento DOM in un PDF a pagina unica.
+ * La pagina ha larghezza A4 e altezza proporzionale al contenuto, così tutto
+ * il preventivo entra in un solo foglio senza spezzature.
  * @returns Blob del PDF generato.
  */
 export async function elementToPdfBlob(el: HTMLElement): Promise<Blob> {
@@ -43,27 +46,20 @@ export async function elementToPdfBlob(el: HTMLElement): Promise<Blob> {
     logging: false,
   });
 
-  const pdf = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });
-
-  // Larghezza immagine = larghezza pagina; altezza proporzionale.
+  // Larghezza fissa A4; altezza della pagina = altezza del contenuto in scala.
   const imgWidth = A4_WIDTH_PT;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
-  const pageHeight = A4_HEIGHT_PT;
 
-  let heightLeft = imgHeight;
-  let position = 0;
+  // Pagina singola dimensionata sul contenuto: niente addPage, nessuna
+  // spezzatura, il documento resta su un unico foglio.
+  const pdf = new jsPDF({
+    unit: 'pt',
+    format: [imgWidth, imgHeight],
+    orientation: 'portrait',
+  });
+
   const imgData = canvas.toDataURL('image/jpeg', 0.92);
-
-  pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-  heightLeft -= pageHeight;
-
-  // Pagine successive: si "scorre" l'immagine verso l'alto.
-  while (heightLeft > 0) {
-    position -= pageHeight;
-    pdf.addPage();
-    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-  }
+  pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
 
   return pdf.output('blob');
 }
