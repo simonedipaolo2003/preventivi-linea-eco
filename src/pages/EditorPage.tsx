@@ -24,6 +24,7 @@ import { LegnoSection } from '@/features/LegnoSection';
 import { LavorazioniSection } from '@/features/LavorazioniSection';
 import { ManodoperaSection } from '@/features/ManodoperaSection';
 import { RiepilogoSection } from '@/features/RiepilogoSection';
+import { SchedaClienteSection } from '@/features/SchedaClienteSection';
 import { OutputView } from '@/features/OutputView';
 import { ParametriPanel } from '@/features/ParametriPanel';
 import { VersionHistoryPanel } from '@/features/VersionHistoryPanel';
@@ -332,6 +333,7 @@ export function EditorPage() {
               <LavorazioniSection />
               <ManodoperaSection />
               <RiepilogoSection />
+              <SchedaClienteSection />
             </div>
 
             <div className="no-print hidden lg:block">

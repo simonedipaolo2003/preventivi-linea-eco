@@ -6,13 +6,16 @@ import { useAuth } from '@/auth/AuthProvider';
 import { formatEur, formatEur0 } from '@/lib/money';
 import { buildPreview } from '@/domain/preview/presenter';
 import type { PreviewBlock, PreviewMode, PreviewRow } from '@/domain/preview/presenter';
+import { SchedaClienteView } from '@/features/SchedaClienteView';
 import { elementToPdfBlob, pdfFilename, downloadBlob } from '@/lib/pdf';
 import { exportsRepo } from '@/data/repositories';
 
 type ArchiveState = 'idle' | 'working' | 'done' | 'error';
+/** Le due anteprime tecniche esistenti + la brochure "Scheda cliente". */
+type OutputMode = PreviewMode | 'scheda';
 
 export function OutputView() {
-  const [mode, setMode] = useState<PreviewMode>('interna');
+  const [mode, setMode] = useState<OutputMode>('interna');
   const [printing, setPrinting] = useState(false);
   const [archiveState, setArchiveState] = useState<ArchiveState>('idle');
   const [archiveMsg, setArchiveMsg] = useState<string | null>(null);
@@ -24,9 +27,12 @@ export function OutputView() {
   const totals = useTotals();
   const { profile } = useAuth();
 
+  // Per la scheda il presenter non serve al layout, ma fornisce i metadata
+  // (cliente/data) usati nel nome file.
+  const previewMode: PreviewMode = mode === 'scheda' ? 'cliente' : mode;
   const model = useMemo(
-    () => buildPreview(quote, params, totals, mode),
-    [quote, params, totals, mode],
+    () => buildPreview(quote, params, totals, previewMode),
+    [quote, params, totals, previewMode],
   );
 
   const handlePrint = () => {
@@ -84,6 +90,7 @@ export function OutputView() {
           options={[
             { value: 'interna', label: 'Anteprima interna' },
             { value: 'cliente', label: 'Anteprima cliente' },
+            { value: 'scheda', label: 'Scheda cliente' },
           ]}
           onChange={setMode}
         />
@@ -133,6 +140,10 @@ export function OutputView() {
         ref={docRef}
         className="print-page mx-auto max-w-3xl rounded-sm bg-paper px-12 py-12 shadow-panel print:max-w-none print:px-0 print:py-0 print:shadow-none"
       >
+        {mode === 'scheda' ? (
+          <SchedaClienteView quote={quote} />
+        ) : (
+          <>
         {/* Intestazione */}
         <header className="mb-9 flex items-start justify-between gap-8 border-b border-ink/10 pb-7">
           <div>
@@ -171,6 +182,8 @@ export function OutputView() {
           <ClientTotal value={model.totals.prezzoPrivatiFinale} />
         ) : (
           <InternalTotals totals={model.totals} />
+        )}
+          </>
         )}
       </article>
     </div>

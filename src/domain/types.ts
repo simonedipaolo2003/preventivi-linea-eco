@@ -180,10 +180,51 @@ export interface FinalAdjustment {
   valore: number;
 }
 
+// ---- Scheda cliente (brochure commerciale) ---------------------------------
+// Dati del template PDF "Scheda cliente": contenuti commerciali e immagini
+// caricate dall'utente. Separati dalla logica di pricing tecnico: i prezzi
+// qui sono inseriti a mano (prodotto base + rivestimento), non derivati
+// dall'engine. Le immagini sono path nel bucket Storage (mai hardcodate).
+
+/** Immagine caricata dall'utente: path nel bucket 'quote-pdfs' (prefisso images/). */
+export interface SchedaImage {
+  id: string;
+  path: string;
+}
+
+export interface SchedaClienteData {
+  /** Logo aziendale (upload). Se assente → wordmark tipografico. */
+  logoPath?: string;
+  /** Titolo sezione prodotto base (default "Prodotto base"). */
+  baseTitolo: string;
+  /** Nome commerciale del prodotto/modello; se vuoto usa header.focolare. */
+  baseNome: string;
+  baseDescrizione: string;
+  basePrezzo: number;
+  /** Dettagli prezzo (posa, lavorazione, note brevi) — una voce per riga. */
+  baseDettagli: string;
+  baseImagePath?: string;
+  /** Titolo sezione rivestimento (default "Rivestimento"). */
+  rivTitolo: string;
+  rivDescrizione: string;
+  rivPrezzo: number;
+  rivDettagli: string;
+  /** Foto reali del rivestimento. */
+  rivFoto: SchedaImage[];
+  /** Render 3D: stessa sezione visiva, caption discreta "Render". */
+  rivRender: SchedaImage[];
+  /** Note in calce alla sezione prezzi (es. "IVA esclusa"). */
+  notePrezzi: string;
+  /** Mostra il totale finale (base + rivestimento). */
+  mostraTotale: boolean;
+}
+
 export interface Quote {
   id: string;
   stato: QuoteStatus;
   header: QuoteHeader;
+  /** Contenuti del template "Scheda cliente" (opzionale, retrocompatibile). */
+  schedaCliente?: SchedaClienteData;
   materiali: MaterialRow[];
   supporti: SupportRow[];
   legno: WoodRow[];

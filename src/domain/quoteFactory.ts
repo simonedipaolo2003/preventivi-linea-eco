@@ -2,6 +2,7 @@ import type {
   LaborTaskRow,
   MaterialRow,
   Quote,
+  SchedaClienteData,
   SupportRow,
   WoodRow,
 } from '@/domain/types';
@@ -32,10 +33,30 @@ function defaultLabor(): LaborTaskRow[] {
   ];
 }
 
+/** Dati vuoti della scheda cliente (brochure commerciale). */
+export function createEmptySchedaCliente(): SchedaClienteData {
+  return {
+    baseTitolo: 'Prodotto base',
+    baseNome: '',
+    baseDescrizione: '',
+    basePrezzo: 0,
+    baseDettagli: '',
+    rivTitolo: 'Rivestimento',
+    rivDescrizione: '',
+    rivPrezzo: 0,
+    rivDettagli: '',
+    rivFoto: [],
+    rivRender: [],
+    notePrezzi: '',
+    mostraTotale: true,
+  };
+}
+
 export function createEmptyQuote(): Quote {
   return {
     id: uid('quote'),
     stato: 'definitivo',
+    schedaCliente: createEmptySchedaCliente(),
     header: {
       data: new Date().toISOString().slice(0, 10),
       intestazioneCliente: '',

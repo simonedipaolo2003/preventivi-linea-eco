@@ -3,3 +3,4 @@ export * as quotesRepo from './quotesRepo';
 export * as versionsRepo from './versionsRepo';
 export * as exportsRepo from './exportsRepo';
 export * as profilesRepo from './profilesRepo';
+export * as imagesRepo from './imagesRepo';

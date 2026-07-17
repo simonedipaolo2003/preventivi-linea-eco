@@ -8,6 +8,7 @@ const SECTIONS = [
   { id: 'lavorazioni', index: '05', label: 'Ciottoli e mattoni' },
   { id: 'manodopera', index: '06', label: 'Manodopera' },
   { id: 'riepilogo', index: '07', label: 'Riepilogo' },
+  { id: 'scheda', index: '08', label: 'Scheda cliente' },
 ];
 
 export function SectionNav() {

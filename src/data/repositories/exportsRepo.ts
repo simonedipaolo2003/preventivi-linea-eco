@@ -8,7 +8,7 @@ import type { QuoteExportRow } from '@/data/supabase/types';
 
 const BUCKET = 'quote-pdfs';
 
-export type ExportModalita = 'cliente' | 'interna';
+export type ExportModalita = 'cliente' | 'interna' | 'scheda';
 
 /** Storico esportazioni di un preventivo (più recenti prima). */
 export async function listByQuote(quoteId: string): Promise<QuoteExportRow[]> {
