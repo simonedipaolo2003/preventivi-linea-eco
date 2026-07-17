@@ -295,6 +295,8 @@ export interface LockResult {
   /** Se non acquisito: id dell'utente che detiene il lock. */
   lockedBy: string | null;
   lockedAt: string | null;
+  /** updated_at del record dopo l'operazione di lock (per risync anti-conflitto). */
+  updatedAt?: string | null;
 }
 
 const LOCK_STALE_MS = 15 * 60 * 1000; // lock advisory scaduto dopo 15 min
@@ -317,23 +319,33 @@ export async function acquireLock(
     return { acquired: false, lockedBy: current.locked_by, lockedAt: current.locked_at };
   }
 
-  const { error } = await sb
+  const { data, error } = await sb
     .from('quotes')
     .update({ locked_by: userId, locked_at: new Date().toISOString() })
-    .eq('id', id);
+    .eq('id', id)
+    .select('updated_at')
+    .single();
   if (error) throw error;
-  return { acquired: true, lockedBy: userId, lockedAt: new Date().toISOString() };
+  return {
+    acquired: true,
+    lockedBy: userId,
+    lockedAt: new Date().toISOString(),
+    updatedAt: data?.updated_at ?? null,
+  };
 }
 
-/** Rinnova il timestamp del lock (heartbeat durante l'editing). */
-export async function refreshLock(id: string, userId: string): Promise<void> {
+/** Rinnova il timestamp del lock (heartbeat). Ritorna updated_at per il risync. */
+export async function refreshLock(id: string, userId: string): Promise<string | null> {
   const sb = requireSupabase();
-  const { error } = await sb
+  const { data, error } = await sb
     .from('quotes')
     .update({ locked_at: new Date().toISOString() })
     .eq('id', id)
-    .eq('locked_by', userId);
+    .eq('locked_by', userId)
+    .select('updated_at')
+    .maybeSingle();
   if (error) throw error;
+  return data?.updated_at ?? null;
 }
 
 /** Rilascia il lock se posseduto dall'utente. */

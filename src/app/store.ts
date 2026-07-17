@@ -30,6 +30,13 @@ interface QuoteStore {
   record: LoadedRecord | null;
   /** True se ci sono modifiche non ancora salvate sul server. */
   dirty: boolean;
+  /**
+   * Contatore che aumenta a ogni modifica del contenuto. L'autosave cattura il
+   * valore all'inizio del salvataggio e, a fine, azzera `dirty` SOLO se non è
+   * cambiato nel frattempo: così le battiture fatte durante il salvataggio non
+   * vengono perse (né lo stato "salvato" mostrato in modo ingannevole).
+   */
+  rev: number;
 
   updateQuote: (fn: Updater<Quote>) => void;
   setQuote: (quote: Quote) => void;
@@ -37,8 +44,8 @@ interface QuoteStore {
   resetQuote: () => void;
   /** Carica un preventivo dal DB insieme ai suoi metadati. */
   loadQuote: (quote: Quote, record: LoadedRecord) => void;
-  /** Segna lo stato salvato aggiornando i metadati del record. */
-  markSaved: (record: LoadedRecord) => void;
+  /** Segna lo stato salvato: `dirty` diventa false solo se rev == savedRev. */
+  markSaved: (record: LoadedRecord, savedRev?: number) => void;
   /** Aggiorna parzialmente i metadati del record (es. stato lifecycle). */
   patchRecord: (patch: Partial<LoadedRecord>) => void;
 
@@ -58,17 +65,21 @@ export const useQuoteStore = create<QuoteStore>()((set) => ({
   params: DEFAULT_PRICING_PARAMS,
   record: null,
   dirty: false,
+  rev: 0,
 
-  updateQuote: (fn) => set((s) => ({ quote: produce(s.quote, fn), dirty: true })),
-  setQuote: (quote) => set({ quote, dirty: true }),
-  resetQuote: () => set({ quote: createEmptyQuote(), record: null, dirty: false }),
-  loadQuote: (quote, record) => set({ quote, record, dirty: false }),
+  updateQuote: (fn) => set((s) => ({ quote: produce(s.quote, fn), dirty: true, rev: s.rev + 1 })),
+  setQuote: (quote) => set((s) => ({ quote, dirty: true, rev: s.rev + 1 })),
+  resetQuote: () =>
+    set((s) => ({ quote: createEmptyQuote(), record: null, dirty: false, rev: s.rev + 1 })),
+  loadQuote: (quote, record) => set((s) => ({ quote, record, dirty: false, rev: s.rev + 1 })),
   // Aggiorna solo i metadati del record: lo stato lifecycle (quotes.stato) è
   // gestito esplicitamente, non sovrascritto dal salvataggio del corpo.
-  markSaved: (record) => set({ record, dirty: false }),
+  // dirty resta true se il contenuto è cambiato dopo l'inizio del salvataggio.
+  markSaved: (record, savedRev) =>
+    set((s) => ({ record, dirty: savedRev !== undefined && s.rev !== savedRev })),
   patchRecord: (patch) =>
     set((s) => (s.record ? { record: { ...s.record, ...patch } } : {})),
 
-  updateParams: (fn) => set((s) => ({ params: produce(s.params, fn) })),
+  updateParams: (fn) => set((s) => ({ params: produce(s.params, fn), rev: s.rev + 1 })),
   resetParams: () => set({ params: DEFAULT_PRICING_PARAMS }),
 }));

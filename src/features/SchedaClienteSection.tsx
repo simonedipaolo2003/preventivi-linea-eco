@@ -57,41 +57,8 @@ export function SchedaClienteSection() {
       title="Scheda cliente"
       description="Contenuti della brochure commerciale: prodotto base, rivestimento, immagini e prezzi dedicati al cliente finale. Si esporta dall'anteprima scegliendo «Scheda cliente»."
     >
-      {/* ---- Logo ------------------------------------------------------------ */}
-      <div className="mb-9">
-        <h3 className="label-eyebrow mb-3">Logo aziendale</h3>
-        <div className="flex items-center gap-4">
-          {s.logoPath ? (
-            <>
-              <div className="rounded-lg border border-line bg-paper p-3">
-                <StorageImg path={s.logoPath} className="max-h-12 w-auto max-w-[180px] object-contain" />
-              </div>
-              <RemoveLink
-                onClick={() => {
-                  const old = s.logoPath;
-                  patch((d) => (d.logoPath = undefined));
-                  if (old) removeImage(old);
-                }}
-              />
-            </>
-          ) : (
-            <UploadButton
-              label="Carica logo"
-              disabled={busy}
-              onFile={async (f) => {
-                const path = await uploadImage(f, 800);
-                if (path) patch((d) => (d.logoPath = path));
-              }}
-            />
-          )}
-          {!s.logoPath && (
-            <span className="text-xs text-ink-faint">Senza logo viene usato il marchio tipografico.</span>
-          )}
-        </div>
-      </div>
-
       {/* ---- Prodotto base --------------------------------------------------- */}
-      <div className="mb-9 border-t border-line/70 pt-8">
+      <div className="mb-9">
         <h3 className="label-eyebrow mb-4">Prodotto base</h3>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <TextField

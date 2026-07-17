@@ -51,44 +51,62 @@ export function useAutosave({ autoreId, onCreated, paused = false, delay = 1200 
 
   async function run(): Promise<AutosaveStatus> {
     if (running.current) return 'saving';
-    const { quote: q, params: p, record: r, autoreId: uid } = latest.current;
+    const uid = latest.current.autoreId;
     if (!uid) return 'idle';
 
-    const totali = calcQuote(q, p);
     running.current = true;
     setStatus('saving');
     try {
-      if (!r) {
-        // Niente record vuoti: serve almeno l'intestazione cliente.
-        if (!q.header.intestazioneCliente.trim()) {
-          setStatus('idle');
-          return 'idle';
+      // `rec` è gestito localmente: dopo la create punta al nuovo record, così
+      // il ciclo non ricrea il preventivo e usa updated_at aggiornato.
+      let rec = latest.current.record;
+      for (;;) {
+        const revAtStart = useQuoteStore.getState().rev;
+        const q = useQuoteStore.getState().quote;
+        const p = useQuoteStore.getState().params;
+        const totali = calcQuote(q, p);
+
+        if (!rec) {
+          // Niente record vuoti: serve almeno l'intestazione cliente.
+          if (!q.header.intestazioneCliente.trim()) {
+            setStatus('idle');
+            return 'idle';
+          }
+          const created = await quotesRepo.create({ data: q, totali, autoreId: uid });
+          rec = {
+            id: created.id,
+            codice: created.codice,
+            versionId: created.current_version_id,
+            updatedAt: created.updated_at,
+            stato: created.stato,
+          };
+          markSaved(rec, revAtStart);
+          onCreated?.(created.id);
+        } else if (rec.versionId) {
+          const updated = await quotesRepo.autosave({
+            quoteId: rec.id,
+            currentVersionId: rec.versionId,
+            data: q,
+            totali,
+            expectedUpdatedAt: rec.updatedAt,
+          });
+          rec = {
+            id: updated.id,
+            codice: updated.codice,
+            versionId: updated.current_version_id,
+            updatedAt: updated.updated_at,
+            stato: updated.stato,
+          };
+          markSaved(rec, revAtStart);
+        } else {
+          break;
         }
-        const created = await quotesRepo.create({ data: q, totali, autoreId: uid });
-        markSaved({
-          id: created.id,
-          codice: created.codice,
-          versionId: created.current_version_id,
-          updatedAt: created.updated_at,
-          stato: created.stato,
-        });
-        onCreated?.(created.id);
-      } else if (r.versionId) {
-        const updated = await quotesRepo.autosave({
-          quoteId: r.id,
-          currentVersionId: r.versionId,
-          data: q,
-          totali,
-          expectedUpdatedAt: r.updatedAt,
-        });
-        markSaved({
-          id: updated.id,
-          codice: updated.codice,
-          versionId: updated.current_version_id,
-          updatedAt: updated.updated_at,
-          stato: updated.stato,
-        });
+
+        // Se il contenuto è cambiato durante il salvataggio, salva di nuovo con
+        // i dati freschi (e il nuovo updated_at) invece di perdere le modifiche.
+        if (useQuoteStore.getState().rev === revAtStart) break;
       }
+
       setStatus('saved');
       setSavedAt(new Date());
       return 'saved';

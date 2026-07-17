@@ -12,6 +12,7 @@ import { useMemo } from 'react';
 import type { Quote, SchedaImage } from '@/domain/types';
 import { createEmptySchedaCliente } from '@/domain/quoteFactory';
 import { StorageImg, useStorageImage } from '@/components/StorageImage';
+import { BrandLogo } from '@/components/BrandLogo';
 import { formatEur0 } from '@/lib/money';
 
 export function SchedaClienteView({ quote }: { quote: Quote }) {
@@ -36,7 +37,7 @@ export function SchedaClienteView({ quote }: { quote: Quote }) {
     <div className="font-sans">
       {/* ---- Header ---------------------------------------------------------- */}
       <header className="mb-12 flex items-start justify-between gap-10 break-inside-avoid">
-        <Logo path={s.logoPath} />
+        <BrandLogo className="h-14 w-auto max-w-[240px] object-contain" />
         <div className="text-right">
           <p className="label-eyebrow">Preventivo</p>
           <h1 className="mt-1.5 font-serif text-[1.9rem] leading-tight text-ink">
@@ -100,19 +101,6 @@ export function SchedaClienteView({ quote }: { quote: Quote }) {
           <p className="mt-4 text-xs text-ink-muted">{s.notePrezzi}</p>
         )}
       </section>
-    </div>
-  );
-}
-
-// ---- Logo / wordmark --------------------------------------------------------
-function Logo({ path }: { path?: string }) {
-  const url = useStorageImage(path);
-  if (url) return <img src={url} alt="" className="max-h-16 w-auto max-w-[220px] object-contain" />;
-  // Fallback tipografico: nessuna immagine hardcodata.
-  return (
-    <div className="flex items-baseline gap-2 pt-1">
-      <span className="font-serif text-xl text-ink">Preventivi</span>
-      <span className="text-2xs uppercase tracking-label text-ink-faint">Linea Eco</span>
     </div>
   );
 }

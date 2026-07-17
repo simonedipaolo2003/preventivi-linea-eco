@@ -56,7 +56,18 @@ export function EditorPage() {
   const setQuote = useQuoteStore((s) => s.setQuote);
   const resetQuote = useQuoteStore((s) => s.resetQuote);
   const loadQuote = useQuoteStore((s) => s.loadQuote);
+  const patchRecord = useQuoteStore((s) => s.patchRecord);
   const totals = useTotals();
+
+  // Il lock aggiorna updated_at (pre-migrazione 0004): risincronizza il record
+  // così l'autosave non parte con un expectedUpdatedAt già stale → niente
+  // falso conflitto/reset all'apertura. Guardia sull'id per non toccare un
+  // record diverso dopo una navigazione.
+  const syncUpdatedAt = (updatedAt: string | null | undefined) => {
+    if (updatedAt && useQuoteStore.getState().record?.id === id) {
+      patchRecord({ updatedAt });
+    }
+  };
 
   const autosave = useAutosave({
     autoreId: profile?.id,
@@ -96,6 +107,15 @@ export function EditorPage() {
       setLoading(false);
       return;
     }
+    // Se lo store contiene già questo preventivo (appena creato+navigato, o
+    // rientro sullo stesso record), NON ricaricare dal DB: sovrascriverebbe le
+    // modifiche in volo (era la causa dei "reset"). Il reload esplicito resta
+    // disponibile su conflitto e dopo uno snapshot.
+    if (useQuoteStore.getState().record?.id === id) {
+      setLoadError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setLoadError(null);
     loadFromDb(id)
@@ -124,6 +144,7 @@ export function EditorPage() {
 
     quotesRepo.acquireLock(id, profile.id).then(async (res) => {
       if (!active) return;
+      syncUpdatedAt(res.updatedAt);
       if (!res.acquired && res.lockedBy) {
         const names = await profilesRepo.nameMap();
         if (active) setLockedBy(names.get(res.lockedBy) ?? 'un altro utente');
@@ -133,7 +154,10 @@ export function EditorPage() {
     });
 
     const interval = setInterval(() => {
-      quotesRepo.refreshLock(id, profile.id).catch(() => undefined);
+      quotesRepo
+        .refreshLock(id, profile.id)
+        .then((updatedAt) => active && syncUpdatedAt(updatedAt))
+        .catch(() => undefined);
     }, LOCK_REFRESH_MS);
 
     return () => {
