@@ -2,7 +2,7 @@
 // BrandLogo — logo aziendale FISSO (MarsiCamin). Non è più un upload per
 // preventivo: è il marchio dell'azienda.
 //
-// Usa il file reale in /brand/logo-marsicamin.png se presente (basta metterlo
+// Usa il file reale in /brand/logo-marsicamin.jpg se presente (basta metterlo
 // lì per averlo pixel-perfect nel PDF); finché non c'è, mostra un wordmark
 // tipografico on-brand — così il layout funziona subito e resta esatto una
 // volta caricato il file. È DOM (img o testo): html2canvas lo cattura senza
@@ -10,7 +10,7 @@
 // ============================================================================
 import { useState } from 'react';
 
-const LOGO_SRC = '/brand/logo-marsicamin.png';
+const LOGO_SRC = '/brand/logo-marsicamin.jpg';
 
 export function BrandLogo({ className }: { className?: string }) {
   const [failed, setFailed] = useState(false);
