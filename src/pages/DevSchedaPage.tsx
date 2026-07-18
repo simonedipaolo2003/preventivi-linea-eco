@@ -12,10 +12,11 @@ import type { Quote } from '@/domain/types';
 import { SchedaClienteView } from '@/features/SchedaClienteView';
 
 // ---- Quote mock -------------------------------------------------------------
-// full  → contenuti abbondanti (2 pagine in stampa)
-// light → hero + render wide (~1,8 pagine: resta su 2, sforo netto)
-// fit   → sforo lieve oltre una pagina: deve attivare la modalità compatta
-function mockQuote(variant: 'full' | 'light' | 'fit'): Quote {
+// full   → contenuti abbondanti (2 pagine in stampa)
+// light  → hero + render wide (~1,8 pagine: resta su 2, sforo netto)
+// fit    → sforo lieve oltre una pagina: deve attivare la modalità compatta
+// legacy → baseTitolo storico "Prodotto base" nel JSONB: la view lo normalizza
+function mockQuote(variant: 'full' | 'light' | 'fit' | 'legacy'): Quote {
   const q = createEmptyQuote();
   q.header = {
     ...q.header,
@@ -50,6 +51,11 @@ function mockQuote(variant: 'full' | 'light' | 'fit'): Quote {
     notePrezzi: 'IVA esclusa · offerta valida 60 giorni',
     mostraTotale: true,
   };
+  if (variant === 'legacy') {
+    // Preventivo salvato prima del rename: nel JSONB c'è ancora il vecchio
+    // titolo. La view deve normalizzarlo a "Interno".
+    q.schedaCliente.baseTitolo = 'Prodotto base';
+  }
   if (variant === 'fit') {
     // Testi più corti: l'altezza naturale sfora la pagina di poco (~5–15%).
     q.schedaCliente.baseDescrizione =
@@ -65,7 +71,7 @@ function mockQuote(variant: 'full' | 'light' | 'fit'): Quote {
 export function DevSchedaPage() {
   const params = new URLSearchParams(window.location.search);
   const v = params.get('v');
-  const variant = v === 'light' || v === 'fit' ? v : 'full';
+  const variant = v === 'light' || v === 'fit' || v === 'legacy' ? v : 'full';
   const quote = useMemo(() => mockQuote(variant), [variant]);
 
   return (

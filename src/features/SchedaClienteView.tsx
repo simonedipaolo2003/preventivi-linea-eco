@@ -82,6 +82,11 @@ export function SchedaClienteView({ quote }: { quote: Quote }) {
   const dataDoc = formatDate(h.data);
   const totale = s.basePrezzo + s.rivPrezzo;
 
+  // I preventivi salvati prima del rename (2026-07-18) hanno nel JSONB il
+  // vecchio titolo "Prodotto base": in lettura si normalizza a "Interno".
+  const baseTitolo =
+    !s.baseTitolo || s.baseTitolo === 'Prodotto base' ? 'Interno' : s.baseTitolo;
+
   // Foto e render vivono nella stessa sezione: prima le foto reali, poi i
   // render (con caption discreta). Nessuna sezione autonoma "Render".
   const rivImages = useMemo<{ img: SchedaImage; render: boolean }[]>(
@@ -119,7 +124,7 @@ export function SchedaClienteView({ quote }: { quote: Quote }) {
 
       {/* ---- Interno --------------------------------------------------- */}
       <Sezione
-        titolo={s.baseTitolo || 'Interno'}
+        titolo={baseTitolo}
         nome={modello}
         descrizione={s.baseDescrizione}
         prezzo={s.basePrezzo}
@@ -151,7 +156,7 @@ export function SchedaClienteView({ quote }: { quote: Quote }) {
       <section className={`break-inside-avoid ${compact ? 'mt-9' : 'mt-14'}`}>
         <KickerRule titolo="Riepilogo" />
         <div className={`divide-y divide-line/70 ${compact ? 'mt-3' : 'mt-5'}`}>
-          <RigaPrezzo label={s.baseTitolo || 'Interno'} value={s.basePrezzo} compact={compact} />
+          <RigaPrezzo label={baseTitolo} value={s.basePrezzo} compact={compact} />
           <RigaPrezzo label={s.rivTitolo || 'Rivestimento'} value={s.rivPrezzo} compact={compact} />
         </div>
         {s.mostraTotale && (
