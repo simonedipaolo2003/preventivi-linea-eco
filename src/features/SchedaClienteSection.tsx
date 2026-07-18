@@ -1,7 +1,7 @@
 // ============================================================================
 // SchedaClienteSection — editor dei contenuti della "Scheda cliente"
-// (brochure commerciale). Testi, prezzi e upload immagini: logo, foto del
-// prodotto base, foto e render del rivestimento. Le immagini vengono
+// (brochure commerciale). Testi, prezzi e upload immagini: logo, foto
+// dell'interno, foto e render del rivestimento. Le immagini vengono
 // ridimensionate lato client e caricate nello Storage; nel preventivo
 // viaggia solo il path (l'autosave resta leggero).
 // ============================================================================
@@ -55,7 +55,7 @@ export function SchedaClienteSection() {
       id="scheda"
       index="08"
       title="Scheda cliente"
-      description="Contenuti della brochure commerciale: prodotto base, rivestimento, immagini e prezzi dedicati al cliente finale. Si esporta dall'anteprima scegliendo «Scheda cliente»."
+      description="Contenuti della brochure commerciale: interno, rivestimento, immagini e prezzi dedicati al cliente finale. Si esporta dall'anteprima scegliendo «Scheda cliente»."
     >
       {/* ---- Interno --------------------------------------------------- */}
       <div className="mb-9">
@@ -68,7 +68,7 @@ export function SchedaClienteSection() {
             placeholder="Se vuoto usa il campo Focolare"
           />
           <NumberField
-            label="Prezzo prodotto base"
+            label="Prezzo interno"
             value={s.basePrezzo}
             onChange={(v) => patch((d) => (d.basePrezzo = v))}
             suffix="€"
@@ -78,7 +78,7 @@ export function SchedaClienteSection() {
             label="Descrizione breve"
             value={s.baseDescrizione}
             onChange={(v) => patch((d) => (d.baseDescrizione = v))}
-            placeholder="Breve presentazione del prodotto base"
+            placeholder="Breve presentazione dell'interno"
             rows={3}
           />
           <TextArea
@@ -90,7 +90,7 @@ export function SchedaClienteSection() {
           />
         </div>
         <div className="mt-5">
-          <span className="field-label">Foto prodotto base</span>
+          <span className="field-label">Foto interno</span>
           {s.baseImagePath ? (
             <div className="flex items-start gap-4">
               <StorageImg path={s.baseImagePath} className="h-28 w-40 rounded-lg border border-line object-cover" />

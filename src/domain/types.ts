@@ -183,7 +183,7 @@ export interface FinalAdjustment {
 // ---- Scheda cliente (brochure commerciale) ---------------------------------
 // Dati del template PDF "Scheda cliente": contenuti commerciali e immagini
 // caricate dall'utente. Separati dalla logica di pricing tecnico: i prezzi
-// qui sono inseriti a mano (prodotto base + rivestimento), non derivati
+// qui sono inseriti a mano (interno + rivestimento), non derivati
 // dall'engine. Le immagini sono path nel bucket Storage (mai hardcodate).
 
 /** Immagine caricata dall'utente: path nel bucket 'quote-pdfs' (prefisso images/). */
