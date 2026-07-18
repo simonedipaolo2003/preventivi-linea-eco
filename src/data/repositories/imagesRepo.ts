@@ -31,6 +31,13 @@ export async function upload(input: {
 
 /** Scarica l'immagine (autenticato) e la espone come object URL locale. */
 export async function objectUrl(path: string): Promise<string> {
+  // Path "dev:<seed>" → placeholder locali del harness /dev/scheda. Solo in
+  // dev: in build di produzione import.meta.env.DEV è false e l'intero branch
+  // (incluso il modulo importato) viene eliminato dal bundle.
+  if (import.meta.env.DEV && path.startsWith('dev:')) {
+    const { devPlaceholderUrl } = await import('@/pages/devPlaceholders');
+    return devPlaceholderUrl(path.slice(4));
+  }
   const sb = requireSupabase();
   const { data, error } = await sb.storage.from(BUCKET).download(path);
   if (error) throw error;

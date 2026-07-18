@@ -21,6 +21,11 @@ const ArchivioPage = lazy(() =>
 const EditorPage = lazy(() =>
   import('@/pages/EditorPage').then((m) => ({ default: m.EditorPage })),
 );
+// Harness solo-dev per il template "Scheda cliente" (dati mock, no Supabase).
+// Registrata solo in dev: in produzione il chunk non viene mai referenziato.
+const DevSchedaPage = import.meta.env.DEV
+  ? lazy(() => import('@/pages/DevSchedaPage').then((m) => ({ default: m.DevSchedaPage })))
+  : null;
 
 function RouteFallback() {
   return (
@@ -72,6 +77,8 @@ export function App() {
                     </AuthGuard>
                   }
                 />
+
+                {DevSchedaPage && <Route path="/dev/scheda" element={<DevSchedaPage />} />}
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
