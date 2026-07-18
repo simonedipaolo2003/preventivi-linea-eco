@@ -57,9 +57,9 @@ export function SchedaClienteSection() {
       title="Scheda cliente"
       description="Contenuti della brochure commerciale: prodotto base, rivestimento, immagini e prezzi dedicati al cliente finale. Si esporta dall'anteprima scegliendo «Scheda cliente»."
     >
-      {/* ---- Prodotto base --------------------------------------------------- */}
+      {/* ---- Interno --------------------------------------------------- */}
       <div className="mb-9">
-        <h3 className="label-eyebrow mb-4">Prodotto base</h3>
+        <h3 className="label-eyebrow mb-4">Interno</h3>
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <TextField
             label="Nome prodotto / modello"

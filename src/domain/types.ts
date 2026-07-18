@@ -195,7 +195,7 @@ export interface SchedaImage {
 export interface SchedaClienteData {
   /** Logo aziendale (upload). Se assente → wordmark tipografico. */
   logoPath?: string;
-  /** Titolo sezione prodotto base (default "Prodotto base"). */
+  /** Titolo sezione interno (default "Interno"). */
   baseTitolo: string;
   /** Nome commerciale del prodotto/modello; se vuoto usa header.focolare. */
   baseNome: string;

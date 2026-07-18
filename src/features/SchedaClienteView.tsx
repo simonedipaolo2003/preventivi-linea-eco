@@ -3,7 +3,7 @@
 // commerciale da inviare al cliente finale. Separato dai template tecnici
 // (anteprima interna / anteprima cliente), che restano invariati.
 //
-// Layout: header logo/meta → Prodotto base (testo+prezzo | foto) →
+// Layout: header logo/meta → Interno (testo+prezzo | foto) →
 // Rivestimento (testo+prezzo | foto e render nella stessa sezione) →
 // riepilogo prezzi. Ogni blocco collassa con grazia se mancano contenuti
 // o immagini; break-inside-avoid tiene uniti testo/prezzo/immagini in stampa.
@@ -54,9 +54,9 @@ export function SchedaClienteView({ quote }: { quote: Quote }) {
         </div>
       </header>
 
-      {/* ---- Prodotto base --------------------------------------------------- */}
+      {/* ---- Interno --------------------------------------------------- */}
       <Sezione
-        titolo={s.baseTitolo || 'Prodotto base'}
+        titolo={s.baseTitolo || 'Interno'}
         nome={modello}
         descrizione={s.baseDescrizione}
         prezzo={s.basePrezzo}
@@ -83,7 +83,7 @@ export function SchedaClienteView({ quote }: { quote: Quote }) {
       {/* ---- Riepilogo prezzi ------------------------------------------------- */}
       <section className="mt-12 break-inside-avoid border-t border-ink/10 pt-8">
         <div className="space-y-2.5">
-          <RigaPrezzo label={s.baseTitolo || 'Prodotto base'} value={s.basePrezzo} />
+          <RigaPrezzo label={s.baseTitolo || 'Interno'} value={s.basePrezzo} />
           <RigaPrezzo label={s.rivTitolo || 'Rivestimento'} value={s.rivPrezzo} />
         </div>
         {s.mostraTotale && (

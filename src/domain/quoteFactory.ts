@@ -36,7 +36,7 @@ function defaultLabor(): LaborTaskRow[] {
 /** Dati vuoti della scheda cliente (brochure commerciale). */
 export function createEmptySchedaCliente(): SchedaClienteData {
   return {
-    baseTitolo: 'Prodotto base',
+    baseTitolo: 'Interno',
     baseNome: '',
     baseDescrizione: '',
     basePrezzo: 0,
