@@ -12,11 +12,13 @@ import type { Quote } from '@/domain/types';
 import { SchedaClienteView } from '@/features/SchedaClienteView';
 
 // ---- Quote mock -------------------------------------------------------------
-// full   → contenuti abbondanti (2 pagine in stampa)
-// light  → hero + render wide (~1,8 pagine: resta su 2, sforo netto)
-// fit    → sforo lieve oltre una pagina: deve attivare la modalità compatta
+// full   → contenuti abbondanti (sforo netto: resta su 2 pagine, no compressione)
+// light  → hero + render wide (sforo netto: resta su 2 pagine)
+// over   → di POCO oltre una pagina: il fit deve comprimerlo a pagina singola
+// fit    → sforo lieve con testi corti: pagina singola
 // legacy → baseTitolo storico "Prodotto base" nel JSONB: la view lo normalizza
-function mockQuote(variant: 'full' | 'light' | 'fit' | 'legacy'): Quote {
+type Variant = 'full' | 'light' | 'over' | 'fit' | 'legacy';
+function mockQuote(variant: Variant): Quote {
   const q = createEmptyQuote();
   q.header = {
     ...q.header,
@@ -46,7 +48,12 @@ function mockQuote(variant: 'full' | 'light' | 'fit' | 'legacy'): Quote {
             { id: 'f2', path: 'dev:rovere' },
             { id: 'f3', path: 'dev:dettaglio-giunto' },
           ]
-        : [{ id: 'f1', path: 'dev:pietra-serena' }],
+        : variant === 'over'
+          ? [
+              { id: 'f1', path: 'dev:pietra-serena' },
+              { id: 'f2', path: 'dev:rovere' },
+            ]
+          : [{ id: 'f1', path: 'dev:pietra-serena' }],
     rivRender: variant === 'fit' ? [] : [{ id: 'r1', path: 'dev:render-ambiente' }],
     notePrezzi: 'IVA esclusa · offerta valida 60 giorni',
     mostraTotale: true,
@@ -71,7 +78,8 @@ function mockQuote(variant: 'full' | 'light' | 'fit' | 'legacy'): Quote {
 export function DevSchedaPage() {
   const params = new URLSearchParams(window.location.search);
   const v = params.get('v');
-  const variant = v === 'light' || v === 'fit' || v === 'legacy' ? v : 'full';
+  const variant: Variant =
+    v === 'light' || v === 'over' || v === 'fit' || v === 'legacy' ? v : 'full';
   const quote = useMemo(() => mockQuote(variant), [variant]);
 
   return (
@@ -79,6 +87,7 @@ export function DevSchedaPage() {
       <p className="no-print mx-auto mb-4 max-w-3xl text-xs text-ink-faint">
         Harness dev — <a className="underline" href="/dev/scheda?v=full">full</a> ·{' '}
         <a className="underline" href="/dev/scheda?v=light">light</a> ·{' '}
+        <a className="underline" href="/dev/scheda?v=over">over</a> ·{' '}
         <a className="underline" href="/dev/scheda?v=fit">fit</a>
       </p>
       <article className="print-page mx-auto max-w-3xl rounded-sm bg-paper px-12 py-12 shadow-panel print:max-w-none print:px-0 print:py-0 print:shadow-none">
