@@ -47,7 +47,6 @@ export function LoginPage() {
             <span className="font-serif text-2xl text-ink">Preventivi</span>
             <span className="text-2xs uppercase tracking-label text-ink-faint">Linea Eco</span>
           </div>
-          <p className="mt-2 text-sm text-ink-muted">Accedi al gestionale</p>
         </div>
 
         <form
@@ -62,7 +61,6 @@ export function LoginPage() {
               className="field-input-boxed"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Mario Rossi"
               autoComplete="username"
             />
           </div>
