@@ -24,7 +24,7 @@ import {
   calcLaborRow,
   projectCost,
 } from '@/domain/pricing/engine';
-import { formatNumber } from '@/lib/money';
+import { formatEur, formatNumber } from '@/lib/money';
 
 export type PreviewMode = 'interna' | 'cliente';
 
@@ -267,23 +267,48 @@ export function buildPreview(
   const altriRows: PreviewRow[] = [];
   const laborByKind = (kind: string) =>
     quote.manodopera.filter((t) => t.kind === kind).reduce((a, t) => a + calcLaborRow(t, params), 0);
+  const oreByKind = (kind: string) =>
+    quote.manodopera.filter((t) => t.kind === kind).reduce((a, t) => a + t.ore, 0);
+  // Dato che genera il costo: ore × costo orario (es. "4 h × 35,00 €/h").
+  const laborDesc = (ore: number, rate: number) =>
+    `${formatNumber(ore)} h × ${formatEur(rate)}/h`;
 
   const progettazione = laborByKind('progettazione');
   const messa = laborByKind('messaInLavorazione');
   const produzione = laborByKind('produzione');
 
   if (progettazione > 0)
-    altriRows.push(row('Progettazione', progettazione, params, { showInClient: true }));
+    altriRows.push(
+      row('Progettazione', progettazione, params, {
+        showInClient: true,
+        description: laborDesc(oreByKind('progettazione'), params.costoOrarioProgettazione),
+      }),
+    );
   if (messa > 0)
-    altriRows.push(row('Messa in lavorazione', messa, params, { showInClient: true }));
+    altriRows.push(
+      row('Messa in lavorazione', messa, params, {
+        showInClient: true,
+        description: laborDesc(oreByKind('messaInLavorazione'), params.costoOrarioMessaInLavorazione),
+      }),
+    );
   if (produzione > 0)
-    altriRows.push(row('Lavorazione e produzione', produzione, params, { showInClient: true }));
+    altriRows.push(
+      row('Lavorazione e produzione', produzione, params, {
+        showInClient: true,
+        description: laborDesc(oreByKind('produzione'), params.costoOrarioProduzione),
+      }),
+    );
   quote.manodopera
     .filter((t) => t.kind === 'extra')
     .forEach((t) => {
       const costo = calcLaborRow(t, params);
       if (costo > 0)
-        altriRows.push(row(t.etichetta || 'Manodopera extra', costo, params, { showInClient: true }));
+        altriRows.push(
+          row(t.etichetta || 'Manodopera extra', costo, params, {
+            showInClient: true,
+            description: laborDesc(t.ore, t.costoOrarioManuale ?? 0),
+          }),
+        );
     });
 
   // consumo / imballaggio / costi fissi + altri costi a corpo produzione:
