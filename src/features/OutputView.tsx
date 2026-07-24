@@ -7,7 +7,7 @@ import { formatEur, formatEur0 } from '@/lib/money';
 import { buildPreview } from '@/domain/preview/presenter';
 import type { PreviewBlock, PreviewMode, PreviewRow } from '@/domain/preview/presenter';
 import { SchedaClienteView } from '@/features/SchedaClienteView';
-import { elementToPdfBlob, pdfFilename, downloadBlob } from '@/lib/pdf';
+import { elementToPdfBlob, pdfFilename, pickPdfTarget, writePdfTarget } from '@/lib/pdf';
 import { exportsRepo } from '@/data/repositories';
 
 type ArchiveState = 'idle' | 'working' | 'done' | 'error';
@@ -56,6 +56,21 @@ export function OutputView() {
       setArchiveMsg('Salva prima il preventivo, poi potrai archiviare il PDF.');
       return;
     }
+
+    // Chiedi il percorso SUBITO, finché il click è "fresco": showSaveFilePicker
+    // richiede un gesto utente recente, quindi va invocato prima della
+    // generazione del PDF (html2canvas + upload consumerebbero l'attivazione).
+    const filename = pdfFilename(model.metadata.cliente, model.metadata.data, mode);
+    let target;
+    try {
+      target = await pickPdfTarget(filename);
+    } catch {
+      setArchiveState('error');
+      setArchiveMsg('Impossibile aprire la finestra di salvataggio.');
+      return;
+    }
+    if (target === null) return; // annullato dall'utente
+
     setArchiveState('working');
     setArchiveMsg(null);
     try {
@@ -67,9 +82,9 @@ export function OutputView() {
         modalita: mode,
         autoreId: profile.id,
       });
-      downloadBlob(blob, pdfFilename(model.metadata.cliente, model.metadata.data, mode));
+      await writePdfTarget(target, blob, filename);
       setArchiveState('done');
-      setArchiveMsg('PDF salvato nell’archivio e scaricato.');
+      setArchiveMsg('PDF salvato nell’archivio e sul computer.');
       setTimeout(() => setArchiveState('idle'), 3000);
     } catch {
       setArchiveState('error');
